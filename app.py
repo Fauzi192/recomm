@@ -68,7 +68,22 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 # ---------- Tampilkan Rekomendasi ----------
 st.subheader("🔁 Rekomendasi Anime Serupa:")
-rekomendasi_df = get_knn_recommendations(judul_input, knn_model, anime, n=5)
+def get_knn_recommendations(anime_title, knn_model, df, n=5):
+    # Buat fitur (harus sama seperti waktu training)
+    fitur = df.drop(columns=['name', 'genre'])
+
+    # Cari index anime input
+    index = df[df['name'] == anime_title].index[0]
+
+    # Ambil vektor fitur dari anime input
+    input_vector = fitur.iloc[index].values.reshape(1, -1)
+
+    # Ambil rekomendasi dari KNN
+    distances, indices = knn_model.kneighbors(input_vector, n_neighbors=n+1)
+
+    # Ambil nama dan genre dari anime rekomendasi (tanpa anime itu sendiri)
+    rekomendasi = df.iloc[indices[0][1:]][['name', 'genre']]
+    return rekomendasi
 
 for idx, row in rekomendasi_df.iterrows():
     st.markdown('<div class="anime-card">', unsafe_allow_html=True)
